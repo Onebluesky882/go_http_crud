@@ -1,12 +1,12 @@
 package main
 
 import (
-	"log"
 	"log/slog"
 	"net/http"
 	"os"
 
 	"github.com/onebluesky882/go-http-crud/internal/router"
+	"github.com/onebluesky882/go-http-crud/pkg/logger"
 	"github.com/uptrace/bun"
 )
 
@@ -19,11 +19,13 @@ type User struct {
 }
 
 func main() {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{AddSource: true}))
-	logger.Info("server starting on port :3008")
+	log := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{AddSource: true}))
 	r := router.New()
-	err := http.ListenAndServe(":3008", r)
-	if err != nil {
-		log.Fatal(r)
+	wrappedRouter := logger.AddLoggerMid(log, logger.LoggerMid(r))
+
+	log.Info("server starting on port : 3008")
+
+	if err := http.ListenAndServe(":3008", wrappedRouter); err != nil {
+		log.Error("failed to start server", "error", err)
 	}
 }
