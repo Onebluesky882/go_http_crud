@@ -20,7 +20,7 @@ type User struct {
 
 func main() {
 	log := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{AddSource: true}))
-	r := router.New()
+	r := router.New(nil)
 	wrappedRouter := logger.AddLoggerMid(log, logger.LoggerMid(r))
 
 	log.Info("server starting on port : 3008")
