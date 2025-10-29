@@ -1,0 +1,25 @@
+# .air.toml
+
+# The root directory of your project
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go build -o ./tmp/main ./cmd"
+  bin = "tmp/main"
+  full_bin = "APP_ENV=dev ./tmp/main"
+  include_ext = ["go", "tpl", "tmpl", "html"]
+  exclude_dir = ["tmp", "vendor"]
+
+[log]
+  time = true
+  level = "debug"
+
+[color]
+  main = "yellow"
+  watcher = "cyan"
+  build = "green"
+  runner = "magenta"
+
+[misc]
+  clean_on_exit = true
