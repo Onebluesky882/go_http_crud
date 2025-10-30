@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/onebluesky882/go-http-crud/internal/router"
+	"github.com/onebluesky882/go-http-crud/internal/store"
 	"github.com/onebluesky882/go-http-crud/pkg/logger"
 	"github.com/uptrace/bun"
 )
@@ -20,7 +21,7 @@ type User struct {
 
 func main() {
 	log := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{AddSource: true}))
-	r := router.New(nil)
+	r := router.New(store.New())
 	wrappedRouter := logger.AddLoggerMid(log, logger.LoggerMid(r))
 
 	log.Info("server starting on port : 3008")

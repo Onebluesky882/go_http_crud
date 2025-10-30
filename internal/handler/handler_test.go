@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/onebluesky882/go-http-crud/internal/handler"
+	"github.com/onebluesky882/go-http-crud/internal/store"
 )
 
 func Test_PostNews(t *testing.T) {
@@ -67,21 +68,21 @@ type mockNewsStore struct {
 	errState bool
 }
 
-func (m mockNewsStore) Create(_ handler.NewsPostReqBody) (news handler.NewsPostReqBody, err error) {
+func (m mockNewsStore) Create(_ store.News) (news store.News, err error) {
 	if m.errState {
 		return news, errors.New("some error")
 	}
 	return news, nil
 }
 
-func (m mockNewsStore) FindByID(_ uuid.UUID) (news handler.NewsPostReqBody, err error) {
+func (m mockNewsStore) FindByID(_ uuid.UUID) (news store.News, err error) {
 	if m.errState {
 		return news, errors.New("some error")
 	}
 	return news, nil
 }
 
-func (m mockNewsStore) FindAll() (news []handler.NewsPostReqBody, err error) {
+func (m mockNewsStore) FindAll() (news []store.News, err error) {
 	if m.errState {
 		return news, errors.New("some error")
 	}
@@ -95,7 +96,7 @@ func (m mockNewsStore) DeleteNews(_ uuid.UUID) error {
 	return nil
 }
 
-func (m mockNewsStore) UpdateByID(_ handler.NewsPostReqBody) error {
+func (m mockNewsStore) UpdateByID(_ store.News) error {
 	if m.errState {
 		return errors.New("some error")
 	}
@@ -105,6 +106,41 @@ func (m mockNewsStore) UpdateByID(_ handler.NewsPostReqBody) error {
 func Test_GetAllNews(t *testing.T) {
 	testCases := []struct {
 		name           string
+		store          handler.NewsStorer
+		expectedStatus int
+	}{
+		{
+			name:           "db error",
+			store:          mockNewsStore{},
+			expectedStatus: http.StatusInternalServerError,
+		},
+		{
+			name:           "success",
+			store:          mockNewsStore{},
+			expectedStatus: http.StatusOK,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Arrange
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodPost, "/", nil)
+
+			// Act
+			handler.GetAllNews(tc.store)(w, r)
+
+			// Assert
+			if w.Result().StatusCode != tc.expectedStatus {
+				t.Errorf("expected :%d, got : %d", tc.expectedStatus, w.Result().StatusCode)
+			}
+		})
+	}
+}
+
+func Test_UpdateNewsByID(t *testing.T) {
+	testCases := []struct {
+		name           string
+		body           io.Reader
 		store          handler.NewsStorer
 		expectedStatus int
 	}{

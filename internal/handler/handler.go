@@ -5,20 +5,21 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/onebluesky882/go-http-crud/internal/store"
 	"github.com/onebluesky882/go-http-crud/pkg/logger"
 )
 
 type NewsStorer interface {
 	// create news
-	Create(NewsPostReqBody) (NewsPostReqBody, error)
+	Create(store.News) (store.News, error)
 	// find by id
-	FindByID(uuid.UUID) (NewsPostReqBody, error)
+	FindByID(uuid.UUID) (store.News, error)
 
-	FindAll() ([]NewsPostReqBody, error)
+	FindAll() ([]store.News, error)
 
 	DeleteNews(uuid.UUID) error
 
-	UpdateByID(NewsPostReqBody) error
+	UpdateByID(store.News) error
 }
 
 func PostNews(ns NewsStorer) http.HandlerFunc {
@@ -33,14 +34,15 @@ func PostNews(ns NewsStorer) http.HandlerFunc {
 			return
 		}
 
-		if err := newsRequestBody.Validate(); err != nil {
+		n, err := newsRequestBody.Validate()
+		if err != nil {
 			logger.Error("request validation failed", "error", err)
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(err.Error()))
 			return
 		}
 
-		if _, err := ns.Create(newsRequestBody); err != nil {
+		if _, err := ns.Create(n); err != nil {
 			logger.Error("error creating news", "error", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -108,14 +110,15 @@ func UpdateNewsByID(ns NewsStorer) http.HandlerFunc {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		if err := newsRequestBody.Validate(); err != nil {
+		n, err := newsRequestBody.Validate()
+		if err != nil {
 			logger.Error("request validation failed", "error", err)
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(err.Error()))
 			return
 		}
 
-		if err := ns.UpdateByID(newsRequestBody); err != nil {
+		if err := ns.UpdateByID(n); err != nil {
 			logger.Error("error updating news", "error", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
